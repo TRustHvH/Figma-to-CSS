@@ -86,7 +86,7 @@ function rgbToHex(r, g, b) {
     const hex = Math.round(n * 255).toString(16);
     return hex.length === 1 ? '0' + hex : hex;
   };
-  return `#${toHex(r)}${toHex(g)}${toHex(b)}`;
+  return `#${toHex(r)}${toHex(g)}${toHex(b)}`.toUpperCase();
 }
 
 function rgbaToString(r, g, b, a) {
