@@ -744,7 +744,7 @@
 
             highlightedValue = highlightedValue.replace(/\b(\d+(?:\.\d+)?)\b/g, '<span class="css-number">$1</span>');
 
-            highlightedValue = highlightedValue.replace(/\b(flex|block|inline|inline-block|grid|none|bold|normal|italic|center|left|right|justify|auto|solid|dashed|dotted|pointer|default|relative|absolute|fixed|sticky|sans-serif|serif|monospace|row|column|wrap|nowrap|space-between|space-around|flex-start|flex-end|stretch)\b/g, 
+            highlightedValue = highlightedValue.replace(/\b(flex|block|inline|inline-block|grid|none|bold|normal|italic|center|left|right|justify|auto|solid|dashed|dotted|pointer|default|relative|absolute|fixed|sticky|sans-serif|serif|monospace|row|column|wrap|nowrap|space-between|space-around|flex-start|flex-end|stretch|uppercase|lowercase|capitalize)\b/g, 
               '<span class="css-keyword">$1</span>');
 
             highlightedValue = highlightedValue.replace(/,/g, '<span class="css-punctuation">,</span>');

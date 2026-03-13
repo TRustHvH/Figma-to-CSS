@@ -148,6 +148,17 @@ function extractStyles(node) {
       css += `  text-align: ${node.textAlignHorizontal.toLowerCase()};\n`;
     }
     
+    if (node.textCase && node.textCase !== 'ORIGINAL') {
+      const textTransform = {
+        'UPPER': 'uppercase',
+        'LOWER': 'lowercase',
+        'TITLE': 'capitalize'
+      };
+      if (textTransform[node.textCase]) {
+        css += `  text-transform: ${textTransform[node.textCase]};\n`;
+      }
+    }
+    
     if (node.fills !== figma.mixed && Array.isArray(node.fills) && node.fills.length > 0) {
       const fill = node.fills[0];
       if (fill.type === 'SOLID') {
