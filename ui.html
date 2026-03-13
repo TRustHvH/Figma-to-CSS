@@ -1,0 +1,856 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>CSS Inspector</title>
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Inter", sans-serif;
+      font-size: 12px;
+      line-height: 1.5;
+      color: #e5e7eb;
+      background: #1a1a1a;
+      overflow: hidden;
+    }
+
+    .container {
+      display: flex;
+      flex-direction: column;
+      height: 100vh;
+      padding: 12px;
+    }
+
+    .header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 12px;
+      padding-bottom: 8px;
+      border-bottom: 1px solid #2d2d2d;
+    }
+
+    h1 {
+      font-size: 14px;
+      font-weight: 600;
+      color: #f3f4f6;
+      
+    }
+
+    .header-buttons {
+      display: flex;
+      gap: 6px;
+    }
+
+    .btn-settings,
+    .btn-copy {
+      background: transparent;
+      border: 1px solid #3d3d3d;
+      border-radius: 4px;
+      padding: 4px 6px;
+      cursor: pointer;
+      color: #9ca3af;
+      transition: all 0.15s ease;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .btn-settings:hover,
+    .btn-copy:hover {
+      background: #2d2d2d;
+      border-color: #4d4d4d;
+      color: #e5e7eb;
+    }
+
+    .btn-settings:active,
+    .btn-copy:active {
+      background: #3d3d3d;
+    }
+
+    .btn-copy:disabled {
+      opacity: 0.4;
+      cursor: not-allowed;
+    }
+
+    .content {
+      flex: 1;
+      overflow-y: auto;
+      background: #0d0d0d;
+      border: 1px solid #2d2d2d;
+      border-radius: 6px;
+      padding: 10px;
+    }
+
+    .placeholder {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 100%;
+      color: #6b7280;
+      text-align: center;
+    }
+
+    .placeholder svg {
+      margin-bottom: 8px;
+      opacity: 0.5;
+    }
+
+    .placeholder p {
+      font-size: 12px;
+    }
+
+    .css-output {
+      font-family: "SF Mono", Monaco, "Cascadia Code", "Roboto Mono", Consolas, "Courier New", monospace;
+      font-size: 11px;
+      line-height: 1.6;
+      color: #e5e7eb;
+      white-space: pre;
+      word-wrap: break-word;
+      user-select: text;
+      cursor: text;
+      background: #1a1a1a;
+      padding: 8px;
+      border-radius: 4px;
+      border: 1px solid #2d2d2d;
+      overflow-x: auto;
+    }
+
+    .css-output::selection {
+      background: #3b82f6;
+      color: #ffffff;
+    }
+
+    .css-comment {
+      color: #6b7280;
+    }
+
+    .css-selector {
+      color: #d4b660;
+    }
+
+    .css-property {
+      color: #bababa;
+    }
+
+    .css-color {
+      color: #2286b7;
+    }
+
+    .css-number {
+      color: #2286b7;
+    }
+
+    .css-unit {
+      color: #69aa72;
+    }
+
+    .css-keyword {
+      color: #69aa72;
+    }
+
+    .css-string {
+      color: #69aa72;
+    }
+
+    .css-bracket {
+      color: #d4b660;
+    }
+
+    .css-punctuation {
+      color: #b9bcc2;
+    }
+
+    /* Информация о расстоянии */
+    .distance-info {
+      background: #1a1a1a;
+      border: 1px solid #2d2d2d;
+      border-radius: 6px;
+      padding: 12px;
+    }
+
+    .distance-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 8px 0;
+      border-bottom: 1px solid #2d2d2d;
+    }
+
+    .distance-item:last-child {
+      border-bottom: none;
+    }
+
+    .distance-label {
+      color: #9ca3af;
+      font-size: 12px;
+    }
+
+    .distance-value {
+      color: #3b82f6;
+      font-size: 13px;
+      font-weight: 600;
+      font-family: "SF Mono", Monaco, monospace;
+    }
+
+    .multi-selection-badge {
+      display: inline-block;
+      background: #422006;
+      color: #fbbf24;
+      font-size: 10px;
+      padding: 2px 6px;
+      border-radius: 3px;
+      margin-bottom: 8px;
+      font-weight: 500;
+    }
+
+    .notification {
+      position: fixed;
+      bottom: 16px;
+      left: 50%;
+      transform: translateX(-50%) translateY(60px);
+      background: #10b981;
+      color: #ffffff;
+      padding: 8px 12px;
+      border-radius: 6px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 12px;
+      font-weight: 500;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+      opacity: 0;
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      pointer-events: none;
+      z-index: 1000;
+    }
+
+    .notification.show {
+      transform: translateX(-50%) translateY(0);
+      opacity: 1;
+    }
+
+    .notification svg {
+      flex-shrink: 0;
+    }
+
+    .content::-webkit-scrollbar {
+      width: 6px;
+    }
+
+    .content::-webkit-scrollbar-track {
+      background: transparent;
+    }
+
+    .content::-webkit-scrollbar-thumb {
+      background: #3d3d3d;
+      border-radius: 3px;
+    }
+
+    .content::-webkit-scrollbar-thumb:hover {
+      background: #4d4d4d;
+    }
+
+    .modal-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0, 0, 0, 0.7);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 2000;
+    }
+
+    .modal-overlay.show {
+      display: flex;
+    }
+
+    .modal {
+      background: #1a1a1a;
+      border: 1px solid #3d3d3d;
+      border-radius: 8px;
+      padding: 20px;
+      width: 280px;
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5);
+    }
+
+    .modal-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 20px;
+    }
+
+    .modal-title {
+      font-size: 14px;
+      font-weight: 600;
+      color: #f3f4f6;
+    }
+
+    .btn-close {
+      background: transparent;
+      border: none;
+      color: #9ca3af;
+      cursor: pointer;
+      padding: 4px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: color 0.15s ease;
+    }
+
+    .btn-close:hover {
+      color: #e5e7eb;
+    }
+
+    .slider-group {
+      margin-bottom: 20px;
+    }
+
+    .slider-label {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 8px;
+      font-size: 12px;
+      color: #9ca3af;
+    }
+
+    .slider-value {
+      color: #3b82f6;
+      font-weight: 500;
+    }
+
+    .slider-container {
+      position: relative;
+      height: 32px;
+      display: flex;
+      align-items: center;
+    }
+
+    .slider {
+      width: 100%;
+      height: 4px;
+      background: #2d2d2d;
+      border-radius: 2px;
+      outline: none;
+      -webkit-appearance: none;
+      appearance: none;
+      cursor: pointer;
+    }
+
+    .slider::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 16px;
+      height: 16px;
+      background: #3b82f6;
+      border-radius: 50%;
+      cursor: pointer;
+      transition: all 0.15s ease;
+    }
+
+    .slider::-webkit-slider-thumb:hover {
+      background: #2563eb;
+      transform: scale(1.1);
+    }
+
+    .slider::-moz-range-thumb {
+      width: 16px;
+      height: 16px;
+      background: #3b82f6;
+      border: none;
+      border-radius: 50%;
+      cursor: pointer;
+      transition: all 0.15s ease;
+    }
+
+    .slider::-moz-range-thumb:hover {
+      background: #2563eb;
+      transform: scale(1.1);
+    }
+
+    .slider-markers {
+      position: absolute;
+      width: 100%;
+      display: flex;
+      justify-content: space-between;
+      pointer-events: none;
+      top: 50%;
+      transform: translateY(-50%);
+    }
+
+    .slider-marker {
+      width: 2px;
+      height: 8px;
+      background: #3d3d3d;
+    }
+
+    .slider-marker.center {
+      background: #6b7280;
+      height: 12px;
+    }
+
+    .modal-footer {
+      display: flex;
+      justify-content: space-between;
+      gap: 8px;
+      margin-top: 20px;
+    }
+
+    .btn-reset,
+    .btn-save {
+      flex: 1;
+      background: transparent;
+      border: 1px solid #3d3d3d;
+      border-radius: 4px;
+      padding: 6px 12px;
+      color: #9ca3af;
+      font-size: 12px;
+      cursor: pointer;
+      transition: all 0.15s ease;
+    }
+
+    .btn-reset:hover,
+    .btn-save:hover {
+      background: #2d2d2d;
+      border-color: #4d4d4d;
+      color: #e5e7eb;
+    }
+
+    .btn-save {
+      background: #3b82f6;
+      border-color: #3b82f6;
+      color: #ffffff;
+    }
+
+    .btn-save:hover {
+      background: #2563eb;
+      border-color: #2563eb;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <h1>CSS Inspector</h1>
+      <div class="header-buttons">
+        <button id="settingsBtn" class="btn-settings" title="Настройки">
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+            <path d="M8 10C9.10457 10 10 9.10457 10 8C10 6.89543 9.10457 6 8 6C6.89543 6 6 6.89543 6 8C6 9.10457 6.89543 10 8 10Z" stroke="currentColor" stroke-width="1.2"/>
+            <path d="M6.5 2H9.5L10 4C10.3 4.1 10.6 4.3 10.9 4.5L12.7 3.5L14.5 6.5L13 8C13.1 8.3 13.1 8.7 13 9L14.5 10.5L12.7 13.5L10.9 12.5C10.6 12.7 10.3 12.9 10 13L9.5 15H6.5L6 13C5.7 12.9 5.4 12.7 5.1 12.5L3.3 13.5L1.5 10.5L3 9C2.9 8.7 2.9 8.3 3 8L1.5 6.5L3.3 3.5L5.1 4.5C5.4 4.3 5.7 4.1 6 4L6.5 2Z" stroke="currentColor" stroke-width="1.2" stroke-linejoin="round"/>
+          </svg>
+        </button>
+        <button id="copyAll" class="btn-copy" title="Копировать всё">
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+            <path d="M5.5 4.5V2.5C5.5 1.94772 5.94772 1.5 6.5 1.5H13.5C14.0523 1.5 14.5 1.94772 14.5 2.5V9.5C14.5 10.0523 14.0523 10.5 13.5 10.5H11.5" stroke="currentColor" stroke-width="1.5"/>
+            <rect x="1.5" y="5.5" width="8" height="9" rx="1" stroke="currentColor" stroke-width="1.5"/>
+          </svg>
+        </button>
+      </div>
+    </div>
+    
+    <div id="content" class="content">
+      <div class="placeholder">
+        <svg width="48" height="48" viewBox="0 0 48 48" fill="none">
+          <rect x="8" y="8" width="32" height="32" rx="4" stroke="currentColor" stroke-width="2"/>
+          <path d="M16 20H32M16 24H32M16 28H24" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+        </svg>
+        <p>Выберите элемент на canvas</p>
+      </div>
+    </div>
+    
+    <div id="notification" class="notification">
+      <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+        <path d="M3 8L6.5 11.5L13 5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+      <span>Скопировано!</span>
+    </div>
+  </div>
+
+  <div id="modalOverlay" class="modal-overlay">
+    <div class="modal">
+      <div class="modal-header">
+        <div class="modal-title">Размер окна</div>
+        <button id="closeModal" class="btn-close">
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+            <path d="M12 4L4 12M4 4L12 12" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+          </svg>
+        </button>
+      </div>
+
+      <div class="slider-group">
+        <div class="slider-label">
+          <span>Ширина</span>
+          <span class="slider-value" id="widthValue">360px</span>
+        </div>
+        <div class="slider-container">
+          <div class="slider-markers">
+            <div class="slider-marker"></div>
+            <div class="slider-marker center"></div>
+            <div class="slider-marker"></div>
+          </div>
+          <input type="range" id="widthSlider" class="slider" min="200" max="800" value="360" step="10">
+        </div>
+      </div>
+
+      <div class="slider-group">
+        <div class="slider-label">
+          <span>Высота</span>
+          <span class="slider-value" id="heightValue">480px</span>
+        </div>
+        <div class="slider-container">
+          <div class="slider-markers">
+            <div class="slider-marker"></div>
+            <div class="slider-marker center"></div>
+            <div class="slider-marker"></div>
+          </div>
+          <input type="range" id="heightSlider" class="slider" min="200" max="800" value="480" step="10">
+        </div>
+      </div>
+
+      <div class="modal-footer">
+        <button id="resetBtn" class="btn-reset">Сбросить</button>
+        <button id="saveBtn" class="btn-save">Сохранить</button>
+      </div>
+    </div>
+  </div>
+  
+  <script>
+
+    const contentDiv = document.getElementById('content');
+    const copyAllBtn = document.getElementById('copyAll');
+    const notification = document.getElementById('notification');
+    const settingsBtn = document.getElementById('settingsBtn');
+    const modalOverlay = document.getElementById('modalOverlay');
+    const closeModal = document.getElementById('closeModal');
+    const widthSlider = document.getElementById('widthSlider');
+    const heightSlider = document.getElementById('heightSlider');
+    const widthValue = document.getElementById('widthValue');
+    const heightValue = document.getElementById('heightValue');
+    const resetBtn = document.getElementById('resetBtn');
+    const saveBtn = document.getElementById('saveBtn');
+
+    let currentCSS = '';
+    let currentWidth = 360;
+    let currentHeight = 480;
+
+    function showNotification(text = 'Скопировано!') {
+      const span = notification.querySelector('span');
+      span.textContent = text;
+      notification.classList.add('show');
+      setTimeout(() => {
+        notification.classList.remove('show');
+      }, 2000);
+    }
+
+    async function copyToClipboard(text) {
+      try {
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+          await navigator.clipboard.writeText(text);
+          showNotification();
+          return;
+        }
+      } catch (err) {
+      }
+
+      try {
+        const textarea = document.createElement('textarea');
+        textarea.value = text;
+        textarea.style.position = 'fixed';
+        textarea.style.top = '0';
+        textarea.style.left = '0';
+        textarea.style.opacity = '0';
+        document.body.appendChild(textarea);
+        textarea.focus();
+        textarea.select();
+        
+        const successful = document.execCommand('copy');
+        document.body.removeChild(textarea);
+        
+        if (successful) {
+          showNotification();
+        }
+      } catch (err) {
+      }
+    }
+
+    window.onmessage = async (event) => {
+      const msg = event.data.pluginMessage;
+      
+      if (msg.type === 'no-selection') {
+        // Показываем placeholder
+        contentDiv.innerHTML = `
+          <div class="placeholder">
+            <svg width="48" height="48" viewBox="0 0 48 48" fill="none">
+              <rect x="8" y="8" width="32" height="32" rx="4" stroke="currentColor" stroke-width="2"/>
+              <path d="M16 20H32M16 24H32M16 28H24" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+            </svg>
+            <p>${msg.message}</p>
+          </div>
+        `;
+        currentCSS = '';
+        copyAllBtn.disabled = true;
+        copyAllBtn.style.opacity = '0.5';
+        copyAllBtn.style.cursor = 'not-allowed';
+      } else if (msg.type === 'current-size') {
+        currentWidth = msg.width;
+        currentHeight = msg.height;
+        widthSlider.value = msg.width;
+        heightSlider.value = msg.height;
+        widthValue.textContent = `${msg.width}px`;
+        heightValue.textContent = `${msg.height}px`;
+      } else if (msg.type === 'loaded-size') {
+        currentWidth = msg.width;
+        currentHeight = msg.height;
+      } else if (msg.type === 'size-saved') {
+      } else if (msg.type === 'distance') {
+        let html = `<div class="multi-selection-badge">Расстояние между элементами</div>`;
+        
+        html += `<div class="distance-info">`;
+        html += `<div class="distance-item">`;
+        html += `<span class="distance-label">Элементы:</span>`;
+        html += `<span class="distance-value">${msg.node1Name} ↔ ${msg.node2Name}</span>`;
+        html += `</div>`;
+        
+        html += `<div class="distance-item">`;
+        html += `<span class="distance-label">По горизонтали:</span>`;
+        html += `<span class="distance-value">${msg.horizontal}px</span>`;
+        html += `</div>`;
+        
+        html += `<div class="distance-item">`;
+        html += `<span class="distance-label">По вертикали:</span>`;
+        html += `<span class="distance-value">${msg.vertical}px</span>`;
+        html += `</div>`;
+        
+        html += `<div class="distance-item">`;
+        html += `<span class="distance-label">Между центрами:</span>`;
+        html += `<span class="distance-value">${msg.center}px</span>`;
+        html += `</div>`;
+        html += `</div>`;
+        
+        contentDiv.innerHTML = html;
+        
+        copyAllBtn.disabled = true;
+        copyAllBtn.style.opacity = '0.5';
+        copyAllBtn.style.cursor = 'not-allowed';
+      } else if (msg.type === 'styles') {
+        currentCSS = msg.css;
+        
+        let html = '';
+
+        if (msg.multipleSelected) {
+          html += `<div class="multi-selection-badge">Выбрано ${msg.count} элементов (показаны стили первого)</div>`;
+        }
+        
+        html += `<div class="css-output" id="cssCode">${highlightCSS(msg.css)}</div>`;
+        
+        contentDiv.innerHTML = html;
+        
+        copyAllBtn.disabled = false;
+        copyAllBtn.style.opacity = '1';
+        copyAllBtn.style.cursor = 'pointer';
+
+        const cssCodeElement = document.getElementById('cssCode');
+        if (cssCodeElement) {
+          setupAutoSelect(cssCodeElement);
+        }
+      }
+    };
+
+    function setupAutoSelect(element) {
+      element.addEventListener('mouseup', async (e) => {
+        setTimeout(async () => {
+          const selection = window.getSelection();
+          const selectedText = selection.toString();
+          
+          if (selectedText && selectedText.trim().length > 0) {
+            await copyToClipboard(selectedText);
+            
+            setTimeout(() => {
+              selection.removeAllRanges();
+            }, 500);
+          }
+        }, 100);
+      });
+      
+      element.addEventListener('touchend', async () => {
+        setTimeout(async () => {
+          const selection = window.getSelection();
+          const selectedText = selection.toString();
+          
+          if (selectedText && selectedText.trim().length > 0) {
+            await copyToClipboard(selectedText);
+            
+            setTimeout(() => {
+              selection.removeAllRanges();
+            }, 500);
+          }
+        }, 100);
+      });
+    }
+
+    copyAllBtn.addEventListener('click', async () => {
+      if (currentCSS) {
+        await copyToClipboard(currentCSS);
+      }
+    });
+
+    function escapeHtml(text) {
+      const div = document.createElement('div');
+      div.textContent = text;
+      return div.innerHTML;
+    }
+
+    function highlightCSS(css) {
+      let lines = css.split('\n');
+      let result = [];
+      
+      for (let line of lines) {
+        if (line.trim().startsWith('/*')) {
+          result.push(`<span class="css-comment">${line}</span>`);
+        }
+        else if (line.trim().startsWith('.') && line.includes('{')) {
+          let parts = line.split('{');
+          result.push(`<span class="css-selector">${parts[0]}</span><span class="css-punctuation">{</span>${parts[1] || ''}`);
+        }
+        else if (line.trim() === '}') {
+          result.push(`<span class="css-punctuation">${line}</span>`);
+        }
+        else if (line.includes(':') && line.includes(';')) {
+          let match = line.match(/^(\s*)([\w-]+)(\s*)(:)(\s*)(.+)(;)$/);
+          if (match) {
+            let [, indent, prop, space1, colon, space2, value, semicolon] = match;
+
+            let highlightedValue = value;
+
+            highlightedValue = highlightedValue.replace(/"([^"]+)"/g, '<span class="css-string">"$1"</span>');
+
+            highlightedValue = highlightedValue.replace(/#[0-9a-fA-F]{3,8}/g, '<span class="css-color">$&</span>');
+
+            highlightedValue = highlightedValue.replace(/rgba?\([^)]+\)/g, '<span class="css-color">$&</span>');
+
+            highlightedValue = highlightedValue.replace(/(\d+(?:\.\d+)?)(px|em|rem|%|vh|vw|s|ms|deg)/g, 
+              '<span class="css-number">$1</span><span class="css-unit">$2</span>');
+
+            highlightedValue = highlightedValue.replace(/\b(\d+(?:\.\d+)?)\b/g, '<span class="css-number">$1</span>');
+
+            highlightedValue = highlightedValue.replace(/\b(flex|block|inline|inline-block|grid|none|bold|normal|italic|center|left|right|justify|auto|solid|dashed|dotted|pointer|default|relative|absolute|fixed|sticky|sans-serif|serif|monospace|row|column|wrap|nowrap|space-between|space-around|flex-start|flex-end|stretch)\b/g, 
+              '<span class="css-keyword">$1</span>');
+
+            highlightedValue = highlightedValue.replace(/,/g, '<span class="css-punctuation">,</span>');
+            
+            result.push(`${indent}<span class="css-property">${prop}</span>${space1}<span class="css-punctuation">${colon}</span>${space2}${highlightedValue}<span class="css-punctuation">${semicolon}</span>`);
+          } else {
+            result.push(line);
+          }
+        }
+        else {
+          result.push(line);
+        }
+      }
+      
+      return result.join('\n');
+    }
+
+    copyAllBtn.disabled = true;
+    copyAllBtn.style.opacity = '0.5';
+    copyAllBtn.style.cursor = 'not-allowed';
+
+    settingsBtn.addEventListener('click', () => {
+      parent.postMessage({ 
+        pluginMessage: { 
+          type: 'get-size',
+          currentWidth: currentWidth,
+          currentHeight: currentHeight
+        } 
+      }, '*');
+      modalOverlay.classList.add('show');
+    });
+
+    closeModal.addEventListener('click', () => {
+      modalOverlay.classList.remove('show');
+    });
+
+    modalOverlay.addEventListener('click', (e) => {
+      if (e.target === modalOverlay) {
+        modalOverlay.classList.remove('show');
+      }
+    });
+
+    widthSlider.addEventListener('input', (e) => {
+      const width = parseInt(e.target.value);
+      widthValue.textContent = `${width}px`;
+    });
+
+    widthSlider.addEventListener('change', (e) => {
+      const width = parseInt(e.target.value);
+      const height = parseInt(heightSlider.value);
+      currentWidth = width;
+      currentHeight = height;
+      parent.postMessage({ pluginMessage: { type: 'resize', width, height } }, '*');
+    });
+
+    heightSlider.addEventListener('input', (e) => {
+      const height = parseInt(e.target.value);
+      heightValue.textContent = `${height}px`;
+    });
+
+    heightSlider.addEventListener('change', (e) => {
+      const width = parseInt(widthSlider.value);
+      const height = parseInt(e.target.value);
+      currentWidth = width;
+      currentHeight = height;
+      parent.postMessage({ pluginMessage: { type: 'resize', width, height } }, '*');
+    });
+
+    saveBtn.addEventListener('click', async () => {
+      const width = parseInt(widthSlider.value);
+      const height = parseInt(heightSlider.value);
+      currentWidth = width;
+      currentHeight = height;
+      
+      parent.postMessage({ 
+        pluginMessage: { 
+          type: 'save-size', 
+          width: width, 
+          height: height 
+        } 
+      }, '*');
+      
+      parent.postMessage({ 
+        pluginMessage: { 
+          type: 'resize', 
+          width: width, 
+          height: height 
+        } 
+      }, '*');
+      
+      showNotification('Размер сохранён!');
+      
+      setTimeout(() => {
+        modalOverlay.classList.remove('show');
+      }, 500);
+    });
+
+    resetBtn.addEventListener('click', () => {
+      widthSlider.value = 360;
+      heightSlider.value = 480;
+      widthValue.textContent = '360px';
+      heightValue.textContent = '480px';
+      currentWidth = 360;
+      currentHeight = 480;
+      parent.postMessage({ pluginMessage: { type: 'resize', width: 360, height: 480 } }, '*');
+    });
+  </script>
+</body>
+</html>
