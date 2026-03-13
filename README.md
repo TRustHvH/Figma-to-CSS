@@ -1,63 +1,76 @@
 # CSS Inspector - Figma Plugin
 
-Плагин для Figma, который показывает стили выбранного элемента в виде чистого CSS и автоматически копирует выделенный текст в буфер обмена.
+![CSS Inspector](readme.png)
 
-## Возможности
+A Figma plugin that displays selected element styles as clean CSS code and automatically copies selected text to clipboard.
 
-- 📋 Отображение стилей выбранного элемента в формате CSS
-- ✨ Автоматическое копирование при выделении текста (mouseup)
-- 🎯 Поддержка всех основных CSS свойств
-- 🔄 Реактивное обновление при изменении выбора
-- 💡 Компактный UI (340x220px)
-- 🎨 Поддержка текстовых стилей, цветов, теней, border-radius, flexbox
+## Features
 
-## Установка
+- 📋 Display selected element styles in CSS format
+- ✨ Auto-copy on text selection (mouseup)
+- 🎯 Support for all major CSS properties
+- 🔄 Reactive updates on selection change
+- 💡 Compact UI with resizable window
+- 🎨 Support for text styles, colors, shadows, border-radius, flexbox
+- 📏 Distance measurement between two elements
+- 🎨 Syntax highlighting for CSS code
+- 💾 Save window size preferences
 
-### 1. Подготовка файлов
+## Installation
 
-Убедитесь, что у вас есть все файлы:
+### 1. Prepare Files
+
+Make sure you have all files:
 - `manifest.json`
 - `code.js`
 - `ui.html`
-- `ui.css`
-- `ui.js`
 
-### 2. Загрузка в Figma
+### 2. Load in Figma
 
-1. Откройте Figma Desktop приложение
-2. Перейдите в меню: **Plugins → Development → Import plugin from manifest...**
-3. Выберите файл `manifest.json` из папки проекта
-4. Плагин появится в списке Development plugins
+1. Open Figma Desktop app
+2. Go to menu: **Plugins → Development → Import plugin from manifest...**
+3. Select `manifest.json` file from project folder
+4. Plugin will appear in Development plugins list
 
-### 3. Запуск плагина
+### 3. Run Plugin
 
-1. В Figma: **Plugins → Development → CSS Inspector**
-2. Выберите любой элемент на canvas
-3. В окне плагина появятся CSS стили
+1. In Figma: **Plugins → Development → CSS Inspector**
+2. Select any element on canvas
+3. CSS styles will appear in plugin window
 
-## Использование
+## Usage
 
-### Основной функционал
+### Main Features
 
-1. **Выбор элемента**: Кликните на любой слой в Figma
-2. **Просмотр CSS**: Стили отобразятся в окне плагина
-3. **Автокопирование**: Выделите любой текст в окне → он автоматически скопируется
-4. **Копировать всё**: Нажмите кнопку с иконкой копирования для копирования всего CSS
+1. **Select Element**: Click on any layer in Figma
+2. **View CSS**: Styles will display in plugin window
+3. **Auto-copy**: Select any text in window → it automatically copies
+4. **Copy All**: Click copy icon button to copy entire CSS
+5. **Measure Distance**: Select exactly 2 elements to see distance between them
+6. **Resize Window**: Use settings button to adjust window size
 
-### Поддерживаемые свойства
+### Supported Properties
 
-- `width`, `height` - размеры элемента
-- `font-family`, `font-size`, `font-weight` - текстовые стили
-- `line-height`, `letter-spacing` - межстрочный интервал и кернинг
-- `color` - цвет текста
-- `background-color` - фон элемента
-- `border`, `border-radius` - границы и скругления
-- `opacity` - прозрачность
-- `box-shadow` - тени (drop shadow, inner shadow)
-- `padding` - внутренние отступы (для auto-layout)
-- `display: flex`, `flex-direction`, `justify-content`, `align-items`, `gap` - flexbox свойства
+- `width`, `height` - element dimensions
+- `font-family`, `font-size`, `font-weight` - text styles
+- `line-height`, `letter-spacing` - line spacing and kerning
+- `text-transform` - text case transformation
+- `color` - text color
+- `background-color` - element background
+- `border`, `border-radius` - borders and corners
+- `opacity` - transparency
+- `box-shadow` - shadows (drop shadow, inner shadow)
+- `padding` - internal spacing (for auto-layout)
+- `display: flex`, `flex-direction`, `justify-content`, `align-items`, `gap` - flexbox properties
 
-### Примеры вывода
+### Distance Measurement
+
+When you select exactly 2 elements, the plugin shows:
+- **Horizontal distance** - between right edge of first and left edge of second element
+- **Vertical distance** - between bottom edge of first and top edge of second element
+- **Center distance** - direct distance between center points
+
+### Output Example
 
 ```css
 /* Button */
@@ -65,39 +78,74 @@
   width: 120px;
   height: 40px;
   font-family: "Inter", sans-serif;
+  font-weight: 600;
   font-size: 14px;
-  color: #ffffff;
-  background-color: #3b82f6;
+  color: #FFFFFF;
+  background-color: #3B82F6;
   border-radius: 8px;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 ```
 
-## Разработка
+## Settings
 
-### Структура проекта
+Click the settings icon to:
+- Adjust window width (200-800px)
+- Adjust window height (200-800px)
+- Save preferred size
+- Reset to default (360x480)
 
-```
-├── manifest.json      # Конфигурация плагина
-├── code.js           # Основная логика плагина
-├── ui.html           # HTML интерфейс
-├── ui.css            # Стили интерфейса
-├── ui.js             # Логика UI и автокопирование
-└── package.json      # Метаданные проекта
-```
+## Testing Scenarios
 
-### Безопасность
+1. **Text Layer**
+   - Create text layer with different styles
+   - Select it → check font-family, font-size, color
 
-- Плагин не требует сетевого доступа (`networkAccess: none`)
-- Использует только Figma Plugin API
-- `navigator.clipboard.writeText` работает только в контексте пользовательского события (mouseup)
+2. **Frame with Auto-layout**
+   - Create frame with auto-layout
+   - Check display: flex, gap, padding
 
-### Совместимость
+3. **Element with Shadow**
+   - Add drop shadow to element
+   - Check box-shadow in CSS
+
+4. **Auto-copy**
+   - Select part of CSS text with mouse
+   - Release button → "Copied!" notification should appear
+   - Paste (Ctrl+V) → text should be in clipboard
+
+5. **Multiple Selection**
+   - Select 2 elements
+   - Should display distance measurements
+   - Select 3+ elements → shows styles of first element
+
+6. **Copy All Button**
+   - Click copy icon
+   - All CSS should be copied
+
+## Technical Details
+
+### Security
+
+- Plugin doesn't require network access (`networkAccess: none`)
+- Uses only Figma Plugin API
+- `navigator.clipboard.writeText` works only in user event context (mouseup)
+
+### Compatibility
 
 - Figma Plugin API 1.0.0
-- Современные браузеры с поддержкой Clipboard API
-- Чистый JavaScript (ES6+)
+- Modern browsers with Clipboard API support
+- Pure JavaScript (ES6+)
 
-## Лицензия
+## Project Structure
+
+```
+├── manifest.json      # Plugin configuration
+├── code.js           # Main plugin logic
+├── ui.html           # UI interface with embedded CSS and JS
+└── package.json      # Project metadata
+```
+
+## License
 
 MIT
