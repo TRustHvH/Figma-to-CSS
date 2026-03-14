@@ -587,6 +587,11 @@
       color: #10b981;
     }
 
+    .info-tooltip-icon.purple {
+      background: rgba(168, 85, 247, 0.15);
+      color: #a855f7;
+    }
+
     .info-tooltip-text {
       flex: 1;
     }
@@ -641,6 +646,13 @@
               <div class="info-tooltip-text">
                 <strong data-i18n="infoSiblings">Two siblings</strong>
                 <span data-i18n="infoSiblingsDesc">Select two elements at the same level to see the gap between them</span>
+              </div>
+            </div>
+            <div class="info-tooltip-item">
+              <div class="info-tooltip-icon purple">⎘</div>
+              <div class="info-tooltip-text">
+                <strong data-i18n="infoCopy">Quick copy</strong>
+                <span data-i18n="infoCopyDesc">Select any text in the code — it will be copied automatically</span>
               </div>
             </div>
           </div>
@@ -779,6 +791,8 @@
         infoParentChildDesc: 'Выберите родителя и дочерний элемент, чтобы увидеть отступы (padding)',
         infoSiblings: 'Два соседних',
         infoSiblingsDesc: 'Выберите два элемента на одном уровне, чтобы увидеть gap между ними',
+        infoCopy: 'Быстрое копирование',
+        infoCopyDesc: 'Выделите любой текст в коде — он скопируется автоматически',
       },
       en: {
         settingsTitle: 'Settings',
@@ -813,6 +827,8 @@
         infoParentChildDesc: 'Select a parent and its child to see padding offsets',
         infoSiblings: 'Two siblings',
         infoSiblingsDesc: 'Select two elements at the same level to see the gap between them',
+        infoCopy: 'Quick copy',
+        infoCopyDesc: 'Select any text in the code — it will be copied automatically',
       }
     };
 
