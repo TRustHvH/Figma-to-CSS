@@ -29,7 +29,7 @@ figma.showUI(__html__);
   }
 })();
 
-// Обработка сообщений от UI
+
 figma.ui.onmessage = async (msg) => {
   if (msg.type === 'close') {
     figma.closePlugin();
