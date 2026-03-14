@@ -1,41 +1,15 @@
-figma.ui.onmessage = async (msg) => {
-  if (msg.type === 'close') {
-    figma.closePlugin();
-  } else if (msg.type === 'resize') {
-    figma.ui.resize(msg.width, msg.height);
-  } else if (msg.type === 'save-size') {
-    try {
-      await figma.clientStorage.setAsync('windowWidth', msg.width);
-      await figma.clientStorage.setAsync('windowHeight', msg.height);
-      
-      figma.ui.postMessage({
-        type: 'size-saved',
-        success: true
-      });
-    } catch (error) {
-      figma.ui.postMessage({
-        type: 'size-saved',
-        success: false
-      });
-    }
-  } else if (msg.type === 'get-size') {
-    figma.ui.postMessage({
-      type: 'current-size',
-      width: msg.currentWidth || 360,
-      height: msg.currentHeight || 480
-    });
-  }
-};
 
 figma.showUI(__html__);
 
-(async function initializeSize() {
+(async function initializeSettings() {
   try {
     const savedWidth = await figma.clientStorage.getAsync('windowWidth');
     const savedHeight = await figma.clientStorage.getAsync('windowHeight');
+    const savedLang = await figma.clientStorage.getAsync('pluginLang');
     
     const width = savedWidth || 360;
     const height = savedHeight || 480;
+    const lang = savedLang || 'en';
     
     figma.ui.resize(width, height);
     
@@ -44,6 +18,10 @@ figma.showUI(__html__);
         type: 'loaded-size',
         width,
         height
+      });
+      figma.ui.postMessage({
+        type: 'loaded-lang',
+        lang
       });
     }, 100);
   } catch (error) {
@@ -78,6 +56,13 @@ figma.ui.onmessage = async (msg) => {
       width: msg.currentWidth || 360,
       height: msg.currentHeight || 480
     });
+  } else if (msg.type === 'save-lang') {
+    try {
+      await figma.clientStorage.setAsync('pluginLang', msg.lang);
+      figma.ui.postMessage({ type: 'lang-saved', success: true });
+    } catch (error) {
+      figma.ui.postMessage({ type: 'lang-saved', success: false });
+    }
   }
 };
 
@@ -266,8 +251,7 @@ function handleSelectionChange() {
   
   if (selection.length === 0) {
     figma.ui.postMessage({
-      type: 'no-selection',
-      message: 'Выберите элемент на canvas'
+      type: 'no-selection'
     });
   } else if (selection.length === 1) {
     const node = selection[0];
@@ -280,41 +264,76 @@ function handleSelectionChange() {
   } else if (selection.length === 2) {
     const node1 = selection[0];
     const node2 = selection[1];
-    
+
     const bounds1 = {
       x: node1.absoluteTransform[0][2],
       y: node1.absoluteTransform[1][2],
       width: node1.width,
       height: node1.height
     };
-    
+
     const bounds2 = {
       x: node2.absoluteTransform[0][2],
       y: node2.absoluteTransform[1][2],
       width: node2.width,
       height: node2.height
     };
-    
-    const horizontalDistance = Math.abs(bounds2.x - (bounds1.x + bounds1.width));
-    const verticalDistance = Math.abs(bounds2.y - (bounds1.y + bounds1.height));
-    
-    const center1X = bounds1.x + bounds1.width / 2;
-    const center1Y = bounds1.y + bounds1.height / 2;
-    const center2X = bounds2.x + bounds2.width / 2;
-    const center2Y = bounds2.y + bounds2.height / 2;
-    
-    const centerDistance = Math.sqrt(
-      Math.pow(center2X - center1X, 2) + Math.pow(center2Y - center1Y, 2)
-    );
-    
-    figma.ui.postMessage({
-      type: 'distance',
-      node1Name: node1.name,
-      node2Name: node2.name,
-      horizontal: Math.round(horizontalDistance),
-      vertical: Math.round(verticalDistance),
-      center: Math.round(centerDistance)
-    });
+
+    function isInside(inner, outer) {
+      return (
+        inner.x >= outer.x &&
+        inner.y >= outer.y &&
+        (inner.x + inner.width) <= (outer.x + outer.width) &&
+        (inner.y + inner.height) <= (outer.y + outer.height)
+      );
+    }
+
+    let parent = null, child = null, parentName = '', childName = '';
+
+    if (isInside(bounds2, bounds1)) {
+      parent = bounds1; child = bounds2;
+      parentName = node1.name; childName = node2.name;
+    } else if (isInside(bounds1, bounds2)) {
+      parent = bounds2; child = bounds1;
+      parentName = node2.name; childName = node1.name;
+    }
+
+    if (parent && child) {
+      const paddingTop = Math.round(child.y - parent.y);
+      const paddingLeft = Math.round(child.x - parent.x);
+      const paddingBottom = Math.round((parent.y + parent.height) - (child.y + child.height));
+      const paddingRight = Math.round((parent.x + parent.width) - (child.x + child.width));
+
+      figma.ui.postMessage({
+        type: 'padding-info',
+        parentName,
+        childName,
+        top: paddingTop,
+        right: paddingRight,
+        bottom: paddingBottom,
+        left: paddingLeft
+      });
+    } else {
+      const leftNode = bounds1.x < bounds2.x ? bounds1 : bounds2;
+      const rightNode = bounds1.x < bounds2.x ? bounds2 : bounds1;
+      const gapX = Math.round(rightNode.x - (leftNode.x + leftNode.width));
+
+      const topNode = bounds1.y < bounds2.y ? bounds1 : bounds2;
+      const bottomNode = bounds1.y < bounds2.y ? bounds2 : bounds1;
+      const gapY = Math.round(bottomNode.y - (topNode.y + topNode.height));
+
+      const parentName = (node1.parent && node1.parent === node2.parent && node1.parent.name)
+        ? node1.parent.name : null;
+
+      figma.ui.postMessage({
+        type: 'gap-info',
+        node1Name: node1.name,
+        node2Name: node2.name,
+        gapX: Math.max(gapX, 0),
+        gapY: Math.max(gapY, 0),
+        parentName: parentName
+      });
+    }
   } else {
     const node = selection[0];
     const css = extractStyles(node);
